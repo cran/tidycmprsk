@@ -8,7 +8,8 @@
 [![R-CMD-check](https://github.com/MSKCC-Epi-Bio/tidycmprsk/workflows/R-CMD-check/badge.svg)](https://github.com/MSKCC-Epi-Bio/tidycmprsk/actions)
 [![Codecov test
 coverage](https://codecov.io/gh/MSKCC-Epi-Bio/tidycmprsk/branch/main/graph/badge.svg)](https://app.codecov.io/gh/MSKCC-Epi-Bio/tidycmprsk?branch=main)
-<!-- [![CRAN status](https://www.r-pkg.org/badges/version/tidycmprsk)](https://cran.r-project.org/package=tidycmprsk) -->
+[![CRAN
+status](https://www.r-pkg.org/badges/version/tidycmprsk)](https://cran.r-project.org/package=tidycmprsk)
 <!-- badges: end -->
 
 The `tidycmprsk` package provides an intuitive interface for working
@@ -50,20 +51,26 @@ crr_mod
 #> * Call Surv(ttdeath, death_cr) ~ age + trt
 #> * Failure type of interest "death from cancer"
 #> 
-#> Variable    HR     SE      95% CI       p-value    
-#> age         1.01   0.010   0.99, 1.03   0.56       
-#> trtDrug B   1.52   0.279   0.88, 2.62   0.13
+#> Variable    Coef    SE      HR     95% CI       p-value    
+#> age         0.006   0.010   1.01   0.99, 1.03   0.56       
+#> trtDrug B   0.417   0.279   1.52   0.88, 2.62   0.13
 ```
 
-The `tidycmprsk` plays will with other packages, such as `gtsummary`.
+The `tidycmprsk` plays well with other packages, such as `gtsummary`.
 
 ``` r
 tbl <- 
   crr_mod %>%
-  gtsummary::tbl_regression(exponentiate = TRUE)
+  gtsummary::tbl_regression(exponentiate = TRUE) %>%
+  add_n(location = "level")
 ```
 
 <img src="man/figures/README-gtsummary_print-1.png" width="50%" />
+
+``` r
+gtsummary::inline_text(tbl, variable = age)
+#> [1] "1.01 (95% CI 0.99, 1.03; p=0.6)"
+```
 
 ## Cumulative Incidence
 
@@ -72,27 +79,39 @@ cuminc(Surv(ttdeath, death_cr) ~ 1, trial)
 #> 
 #> -- cuminc() --------------------------------------------------------------------
 #> * Failure type "death from cancer"
-#> time   estimate   std.error    
-#> 5.00   0.000      0.000        
-#> 10.0   0.030      0.012        
-#> 15.0   0.120      0.023        
-#> 20.0   0.215      0.029
+#> time   n.risk   estimate   std.error   95% CI          
+#> 5.00   199      0.000      0.000       NA, NA          
+#> 10.0   189      0.030      0.012       0.012, 0.061    
+#> 15.0   158      0.120      0.023       0.079, 0.169    
+#> 20.0   116      0.215      0.029       0.161, 0.274
 #> * Failure type "death other causes"
-#> time   estimate   std.error    
-#> 5.00   0.005      0.005        
-#> 10.0   0.025      0.011        
-#> 15.0   0.090      0.020        
-#> 20.0   0.205      0.029
+#> time   n.risk   estimate   std.error   95% CI          
+#> 5.00   199      0.005      0.005       0.000, 0.026    
+#> 10.0   189      0.025      0.011       0.009, 0.054    
+#> 15.0   158      0.090      0.020       0.055, 0.135    
+#> 20.0   116      0.205      0.029       0.152, 0.264
 ```
 
 Plot risks using `autoplot()`.
 
 ``` r
 cuminc(Surv(ttdeath, death_cr) ~ trt, trial) %>%
-  autoplot(outcomes = "death from cancer", conf.int = TRUE)
+  autoplot(conf.int = TRUE)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+
+Summary table
+
+``` r
+tbl <- 
+  cuminc(Surv(ttdeath, death_cr) ~ trt, trial) %>%
+  tbl_cuminc(times = c(12, 24), label_header = "**Month {time}**") %>%
+  add_p() %>%
+  add_n()
+```
+
+<img src="man/figures/README-gtsummary_print2-1.png" width="50%" />
 
 ## Contributing
 

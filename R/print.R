@@ -1,8 +1,9 @@
 #' Print crr object
 #'
-#' @param x tidycrr obejct
+#' @param x tidycrr object
 #' @param ... not used
 #' @name print
+#' @keywords internal
 NULL
 
 #' @rdname print
@@ -14,39 +15,67 @@ print.tidycrr <- function(x, ...) {
   cat("\n")
 
   x$tidy %>%
-    dplyr::mutate(
-      dplyr::across(c(.data$estimate, .data$conf.low, .data$conf.high), exp),
-      dplyr::across(c(where(is.numeric), -.data$std.error, -.data$p.value),
-                    ~gtsummary::style_ratio(., digits = 2)),
-      std.error = gtsummary::style_sigfig(.data$std.error, digits = 3),
-      p.value = gtsummary::style_pvalue(.data$p.value, digits = 2),
-      conf.int = paste(.data$conf.low, .data$conf.high, sep = ", "),
-      dplyr::across(where(is.character), ~dplyr::if_else(is.na(.), "", .))
+    # adding the HR with CI to data frame
+    dplyr::bind_cols(
+      select(., .data$estimate, .data$conf.low, .data$conf.high) %>%
+        mutate(
+          across(
+            c(.data$estimate, .data$conf.low, .data$conf.high),
+            ~ gtsummary::style_ratio(exp(.), digits = 2)
+          ),
+          exp_estimate = .data$estimate,
+          conf.int = paste(.data$conf.low, .data$conf.high, sep = ", ")
+        ) %>%
+        select(.data$exp_estimate, .data$conf.int)
     ) %>%
-    select(-.data$statistic, -.data$conf.low, -.data$conf.high) %>%
+    # formatting coef and p-value
+    mutate(
+      across(
+        c(.data$estimate, .data$std.error),
+        purrr::partial(gtsummary::style_sigfig, digits = 3)
+      ),
+      p.value = gtsummary::style_pvalue(.data$p.value, digits = 2)
+    ) %>%
+    select(
+      .data$term, .data$estimate, .data$std.error,
+      .data$exp_estimate, .data$conf.int, .data$p.value
+    ) %>%
+    # adding header row
     tibble::add_row(
       term = "Variable",
-      estimate = "HR",
+      estimate = "Coef",
       std.error = "SE",
-      conf.int = "95% CI",
+      exp_estimate = "HR",
+      conf.int = paste0(x$conf.level * 100, "% CI"),
       p.value = "p-value",
       .before = 1
     ) %>%
-    dplyr::mutate(
-      dplyr::across(
+    # styling the values that will be printed
+    mutate(
+      across(
         where(is.character),
-        ~stringr::str_pad(., side = "right", width = max(nchar(.)) + 3L)),
-      dplyr::across(everything(),
-                    ~ifelse(dplyr::row_number() == 1L,
-                            cli::style_underline(.) %>% cli::style_italic(), .)),
+        ~ stringr::str_pad(., side = "right", width = max(nchar(.)) + 3L)
+      ),
+      across(
+        everything(),
+        ~ ifelse(dplyr::row_number() == 1L,
+          cli::style_underline(.) %>% cli::style_italic(), .
+        )
+      ),
       term =
         ifelse(dplyr::row_number() > 1L, cli::style_bold(.data$term), .data$term)
     ) %>%
-    dplyr::relocate(.data$conf.int, .before = .data$p.value) %>%
-    {purrr::walk(
-      seq_len(nrow(.)),
-      function(.x) .[.x, ] %>% unlist() %>% paste(collapse = "") %>% cat("\n")
-    )}
+    {
+      purrr::walk(
+        seq_len(nrow(.)),
+        function(.x) {
+          .[.x, ] %>%
+            unlist() %>%
+            paste(collapse = "") %>%
+            cat("\n")
+        }
+      )
+    }
 
   invisible()
 }
@@ -57,8 +86,9 @@ print.tidycuminc <- function(x, ...) {
   cli::cli_h1("cuminc()")
 
   # selecting times to report
-  times <- stats::model.frame(x$formula, data = x$data)[[1]][, 1]
-  times <- pretty(times) %>% purrr::discard(~ .x <= 0 | .x > max(times, na.rm = TRUE))
+  times <-
+    pretty(x$tidy$time) %>%
+    purrr::discard(~ .x <= 0 | .x > max(x$tidy$time, na.rm = TRUE))
 
   # getting summaries at specified timepoints
   df_tidy <- tidy(x, times = times)
@@ -72,32 +102,61 @@ print.tidycuminc <- function(x, ...) {
 
         df_tidy %>%
           # filter on the outcome of interest
-          dplyr::filter(.data$outcome %in% .env$outcome) %>%
+          filter(.data$outcome %in% .env$outcome) %>%
+          select(any_of(c(
+            "outcome", "strata", "time", "n.risk",
+            "estimate", "std.error",
+            "conf.low", "conf.high"
+          ))) %>%
           # round all stats
-          dplyr::mutate(
-            dplyr::across(where(is.numeric), ~gtsummary::style_sigfig(., digits = 3))
+          mutate(
+            # round whole numbers to nearest integer
+            across(gtsummary::any_of(c("n.risk")), gtsummary::style_number),
+            # round all other stats to 3 sig figs
+            across(
+              where(is.numeric),
+              ~ gtsummary::style_sigfig(., digits = 3)
+            ),
+            # NA will be shown as "NA" in output
+            across(where(is.character), ~ tidyr::replace_na(., "NA")),
+            conf.int = paste(.data$conf.low, .data$conf.high, sep = ", "),
+            .after = .data$std.error
           ) %>%
-          dplyr::select(-.data$outcome) %>%
+          dplyr::rename("{x$conf.level * 100}% CI" := .data$conf.int) %>%
+          select(-.data$outcome, -.data$conf.low, -.data$conf.high) %>%
           # add header row
-          {tibble::add_row(
-            .data = .,
-            !!!stats::setNames(as.list(names(.)), names(.)),
-            .before = 0L
-          )} %>%
+          {
+            tibble::add_row(
+              .data = .,
+              !!!stats::setNames(as.list(names(.)), names(.)),
+              .before = 0L
+            )
+          } %>%
           # add cli styling to the header row
-          dplyr::mutate(
-            dplyr::across(
+          mutate(
+            across(
               where(is.character),
-              ~stringr::str_pad(., side = "right", width = max(nchar(.)) + 3L)),
-            dplyr::across(everything(),
-                          ~ifelse(dplyr::row_number() == 1L,
-                                  cli::style_underline(.) %>% cli::style_italic(), .))
+              ~ stringr::str_pad(., side = "right", width = max(nchar(.)) + 3L)
+            ),
+            across(
+              everything(),
+              ~ ifelse(dplyr::row_number() == 1L,
+                cli::style_underline(.) %>% cli::style_italic(), .
+              )
+            )
           ) %>%
           # print results table
-          {purrr::walk(
-            seq_len(nrow(.)),
-            function(.x) .[.x, ] %>% unlist() %>% paste(collapse = "") %>% cat("\n")
-          )}
+          {
+            purrr::walk(
+              seq_len(nrow(.)),
+              function(.x) {
+                .[.x, ] %>%
+                  unlist() %>%
+                  paste(collapse = "") %>%
+                  cat("\n")
+              }
+            )
+          }
       }
     )
 
@@ -111,36 +170,49 @@ print.tidycuminc <- function(x, ...) {
       purrr::map(
         function(i) {
           df_glance %>%
-            dplyr::select(dplyr::ends_with(paste0("_", i))) %>%
+            select(dplyr::ends_with(paste0("_", i))) %>%
             dplyr::rename_with(
-              ~stringr::str_replace(., stringr::fixed(paste0("_", i)), "")
+              ~ stringr::str_replace(., stringr::fixed(paste0("_", i)), "")
             )
         }
       ) %>%
       dplyr::bind_rows() %>%
-      dplyr::mutate(
+      mutate(
         p.value = gtsummary::style_pvalue(.data$p.value, digits = 2),
-        dplyr::across(where(is.numeric), ~gtsummary::style_sigfig(., digits = 3))
+        across(where(is.numeric), ~ gtsummary::style_sigfig(., digits = 3))
       ) %>%
       # add header row
-      {tibble::add_row(
-        .data = .,
-        !!!stats::setNames(as.list(names(.)), names(.)),
-        .before = 0L
-      )} %>%
+      {
+        tibble::add_row(
+          .data = .,
+          !!!stats::setNames(as.list(names(.)), names(.)),
+          .before = 0L
+        )
+      } %>%
       # add cli styling to the header row
-      dplyr::mutate(
-        dplyr::across(
+      mutate(
+        across(
           where(is.character),
-          ~stringr::str_pad(., side = "right", width = max(nchar(.)) + 3L)),
-        dplyr::across(everything(),
-                      ~ifelse(dplyr::row_number() == 1L,
-                              cli::style_underline(.) %>% cli::style_italic(), .))
+          ~ stringr::str_pad(., side = "right", width = max(nchar(.)) + 3L)
+        ),
+        across(
+          everything(),
+          ~ ifelse(dplyr::row_number() == 1L,
+            cli::style_underline(.) %>% cli::style_italic(), .
+          )
+        )
       ) %>%
       # print results table
-      {purrr::walk(
-        seq_len(nrow(.)),
-        function(.x) .[.x, ] %>% unlist() %>% paste(collapse = "") %>% cat("\n")
-      )}
+      {
+        purrr::walk(
+          seq_len(nrow(.)),
+          function(.x) {
+            .[.x, ] %>%
+              unlist() %>%
+              paste(collapse = "") %>%
+              cat("\n")
+          }
+        )
+      }
   }
 }

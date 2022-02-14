@@ -6,7 +6,7 @@
 \alias{cuminc.default}
 \title{Competing Risks Cumulative Incidence}
 \usage{
-\method{cuminc}{formula}(formula, data, strata, rho = 0, ...)
+\method{cuminc}{formula}(formula, data, strata, rho = 0, conf.level = 0.95, ...)
 
 cuminc(x, ...)
 
@@ -15,7 +15,8 @@ cuminc(x, ...)
 \arguments{
 \item{formula}{formula with \code{Surv()} on LHS and covariates on RHS.
 The event status variable must be a factor, with the first level indicating
-'censor' and subsequent levels the competing risks.}
+'censor' and subsequent levels the competing risks. The \code{Surv(time2=)}
+argument cannot be used.}
 
 \item{data}{data frame}
 
@@ -28,6 +29,8 @@ stratified on this variable.  (all data in 1 stratum, if missing)
 Power of the weight function used in the tests.
 }
 
+\item{conf.level}{confidence level. Default is 0.95.}
+
 \item{...}{passed to methods}
 
 \item{x}{input object}
@@ -38,6 +41,27 @@ tidycuminc object
 \description{
 Competing Risks Cumulative Incidence
 }
+\section{Confidence intervals}{
+
+
+The confidence intervals for cumulative incidence estimates use the recommended method in
+\emph{Competing Risks: A Practical Perspective} by Melania Pintilie.
+
+\deqn{x^{exp(±z * se / (x * log(x)))}}
+
+where \eqn{x} is the cumulative incidence estimate, \eqn{se} is the
+standard error estimate, and \eqn{z} is the z-score associated with the
+confidence level of the interval, e.g. \eqn{z = 1.96} for a 95\% CI.
+}
+
+\section{p-values}{
+
+
+The p-values reported in \code{cuminc()}, \code{glance.tidycuminc()} and \code{add_p.tbl_cuminc()}
+are Gray's test as described in
+Gray RJ (1988) \emph{A class of K-sample tests for comparing the cumulative incidence of a competing risk}, Annals of Statistics, 16:1141-1154.
+}
+
 \examples{
 # calculate risk for entire cohort -----------
 cuminc(Surv(ttdeath, death_cr) ~ 1, trial)

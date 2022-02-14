@@ -6,7 +6,7 @@
 \alias{crr.default}
 \title{Competing Risks Regression}
 \usage{
-\method{crr}{formula}(formula, data, failcode = NULL, ...)
+\method{crr}{formula}(formula, data, failcode = NULL, conf.level = 0.95, ...)
 
 crr(x, ...)
 
@@ -15,13 +15,16 @@ crr(x, ...)
 \arguments{
 \item{formula}{formula with \code{Surv()} on LHS and covariates on RHS.
 The event status variable must be a factor, with the first level indicating
-'censor' and subsequent levels the competing risks.}
+'censor' and subsequent levels the competing risks. The \code{Surv(time2=)}
+argument cannot be used.}
 
 \item{data}{data frame}
 
 \item{failcode}{Indicates event of interest. If \verb{failcode=} is \code{NULL},
 the first competing event will be used as the event of interest.
 Default is \code{NULL}.}
+
+\item{conf.level}{confidence level. Default is 0.95.}
 
 \item{...}{passed to methods}
 

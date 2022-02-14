@@ -4,7 +4,7 @@
 #'
 #' @param object object of class 'cuminc'
 #' @param outcomes character vector of outcomes to include in plot. Default
-#' is to include all competing events.
+#' is to include the first competing events.
 #' @param aes List of arguments that will be added or replace the existing
 #' arguments in `ggplot2::aes()`. Details below.
 #' @inheritParams tidy.tidycuminc
@@ -34,27 +34,30 @@
 #'     x = "Months from Treatment",
 #'     y = "Risk of Death"
 #'   )
-
-autoplot.tidycuminc <- function(object, outcomes = names(object$failcode),
+autoplot.tidycuminc <- function(object, outcomes = NULL,
                                 conf.int = FALSE, conf.level = 0.95,
                                 aes = NULL, ...) {
   # checking inputs ------------------------------------------------------------
+  outcomes <- outcomes %||% names(object$failcode)[1]
   outcomes <- match.arg(outcomes, names(object$failcode), several.ok = TRUE)
 
   # tidying --------------------------------------------------------------------
   df_tidy <-
     tidy(object, conf.int = conf.int, conf.level = conf.level) %>%
-    dplyr::filter(.data$outcome %in% .env$outcomes)
+    filter(.data$outcome %in% .env$outcomes)
 
   # construct ggplot call ------------------------------------------------------
   # aes()
   aes_args <- list(x = expr(.data$time), y = expr(.data$estimate))
-  if ("strata" %in% names(df_tidy))
+  if ("strata" %in% names(df_tidy)) {
     aes_args <- c(aes_args, list(colour = expr(.data$strata), fill = expr(.data$strata)))
-  if (length(unique(df_tidy$outcome)) > 1)
+  }
+  if (length(unique(df_tidy$outcome)) > 1) {
     aes_args <- c(aes_args, list(linetype = expr(.data$outcome)))
-  if (isTRUE(conf.int))
+  }
+  if (isTRUE(conf.int)) {
     aes_args <- c(aes_args, list(ymin = expr(.data$conf.low), ymax = expr(.data$conf.high)))
+  }
 
   aes <- as.list(rlang::enexpr(aes))[-1]
   aes_args <- aes_args %>% purrr::list_modify(!!!aes)
@@ -64,9 +67,9 @@ autoplot.tidycuminc <- function(object, outcomes = names(object$failcode),
     rlang::inject(ggplot(data = df_tidy, aes(!!!aes_args))) +
     geom_step()
 
-  if (isTRUE(conf.int))
+  if (isTRUE(conf.int)) {
     gg <- gg + geom_ribbon(alpha = 0.2, colour = NA)
+  }
 
   gg
 }
-

@@ -1,3 +1,5 @@
+library(dplyr)
+
 test_that("cuminc() works", {
   cmprsk_cuminc1 <-
     cmprsk::cuminc(
@@ -19,6 +21,24 @@ test_that("cuminc() works", {
     cuminc1$cmprsk,
     cmprsk_cuminc1
   )
+  expect_equal(
+    cuminc1$tidy %>%
+      dplyr::group_by(outcome) %>%
+      filter(time <= 15) %>%
+      dplyr::slice_tail() %>%
+      dplyr::pull(estimate),
+    cmprsk::timepoints(cmprsk_cuminc1, times = 15)$est %>% c()
+  )
+  expect_equal(
+    cuminc1$tidy %>%
+      dplyr::group_by(outcome) %>%
+      filter(time <= 15) %>%
+      dplyr::slice_tail() %>%
+      dplyr::pull(std.error),
+    cmprsk::timepoints(cmprsk_cuminc1, times = 15)$var %>% sqrt() %>% c()
+  )
+
+
 
   expect_error(
     cuminc2 <- cuminc(Surv(ttdeath, death_cr) ~ trt, trial),
@@ -50,42 +70,4 @@ test_that("cuminc() works", {
     ignore_attr = TRUE
   )
 })
-
-test_that("base methods", {
-  cuminc2 <- cuminc(Surv(ttdeath, death_cr) ~ trt, trial)
-
-  expect_error(
-    print(cuminc2),
-    NA
-  )
-
-  expect_error(
-    model.matrix(cuminc2),
-    NA
-  )
-
-  expect_error(
-    model.frame(cuminc2),
-    NA
-  )
-})
-
-test_that("broom methods", {
-  cuminc2 <- cuminc(Surv(ttdeath, death_cr) ~ trt, trial)
-
-  expect_error(
-    glance(cuminc2),
-    NA
-  )
-  expect_error(
-    tidy(cuminc2),
-    NA
-  )
-  expect_error(
-    tidy(cuminc2, conf.int = TRUE),
-    NA
-  )
-
-})
-
 
