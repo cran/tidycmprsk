@@ -224,6 +224,16 @@ test_that("broom methods", {
     cuminc_tidy2 <- tidy(cuminc2, conf.int = FALSE, times = c(0, 12)),
     NA
   )
+  expect_equal(
+    cuminc_tidy2$cum.censor,
+    rep_len(0L, 8)
+  )
+  expect_equal(
+    cuminc_tidy2$cum.event,
+    c(0L, 3L, 0L, 6L, 0L, 9L, 0L, 5L)
+  )
+
+
 
   expect_error(
     cuminc_tidy1 <- tidy(cuminc1, conf.int = FALSE, times = c(0, 12)),
@@ -232,6 +242,14 @@ test_that("broom methods", {
   expect_equal(
     cuminc_tidy1$n.censor,
     rep_len(0L, 4)
+  )
+  expect_equal(
+    cuminc_tidy1$cum.censor,
+    rep_len(0L, 4)
+  )
+  expect_equal(
+    cuminc_tidy1$cum.event,
+    c(0L, 12L, 0L, 11L)
   )
 
   # testing tidy with problematic times
@@ -280,5 +298,16 @@ test_that("broom methods", {
       dplyr::filter(time %in% 24),
     tidy(tt, times = c(24)) %>%
       dplyr::select(time, outcome, estimate, n.event, n.censor)
+  )
+
+  # checking factor class in internal tidy object
+  trial2 <- trial
+  levels(trial2$grade) <- c("III", "II", "I")
+  expect_equal(
+    cuminc(Surv(ttdeath, death_cr) ~ grade, data = trial2) %>%
+      tidy(times = c(0, 24)) %>%
+      purrr::pluck("strata") %>%
+      levels(),
+    c("III", "II", "I")
   )
 })

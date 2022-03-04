@@ -95,8 +95,8 @@ augment.tidycrr <- function(x, times = NULL, probs = NULL, newdata = NULL, ...) 
 #'   "`estimate`", "Risk estimate",
 #'   "`std.error`", "Standard Error",
 #'   "`n.risk`", "Number at risk at the specified time",
-#'   "`n.event`", "Number of events at specified time",
-#'   "`n.censor`", "Number of censored observations at specified time",
+#'   "`n.event`", "If the `times=` argument is missing, then the number of events that occurred at time `t`. Otherwise, it is the cumulative number of events that have occurred since the last time listed.",
+#'   "`n.censor`", "If the `times=` argument is missing, then the number of censored obs at time `t`. Otherwise, it is the cumulative number of censored obs that have occurred since the last time listed.",
 #'   "`cum.event`", "Cumulative number of events at specified time",
 #'   "`cum.censor`", "Cumulative number of censored observations at specified time"
 #' ) %>%
@@ -117,6 +117,14 @@ augment.tidycrr <- function(x, times = NULL, probs = NULL, newdata = NULL, ...) 
 #' tidy(cuminc)
 #'
 #' glance(cuminc)
+#'
+#' # restructure glance to one line per outcome
+#' glance(cuminc) %>%
+#'   tidyr::pivot_longer(
+#'     everything(),
+#'     names_to = c(".value", "outcome_id"),
+#'     names_pattern = "(.*)_(.*)"
+#'   )
 NULL
 
 #' @rdname broom_methods_cuminc
@@ -275,6 +283,20 @@ first_cuminc_tidy <- function(x, conf.level) {
     df_tidy$strata <- NULL
   }
 
+  # if there is a strata, then make it a factor --------------------------------
+  if ("strata" %in% names(df_tidy)) {
+    lvls <-
+      hardhat::mold(
+        x$formula, x$data,
+        blueprint = hardhat::default_formula_blueprint(indicators = "none")
+      ) %>%
+      purrr::pluck("predictors") %>%
+      interaction(sep = ", ") %>%
+      levels()
+
+    df_tidy$strata <- factor(df_tidy$strata, levels = lvls)
+  }
+
   # add conf.int to tibble -----------------------------------------------------
   df_tidy <- add_conf.int(df_tidy, conf.level = conf.level)
 
@@ -318,7 +340,7 @@ add_n_stats <- function(df_tidy, x) {
             blueprint = hardhat::default_formula_blueprint(indicators = "none")
           ) %>%
           purrr::pluck("predictors") %>%
-          interaction() %>%
+          interaction(sep = ", ") %>%
           as.character()
       )
   }
