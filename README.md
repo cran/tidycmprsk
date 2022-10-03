@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# tidycmprsk
+# tidycmprsk <a href="https://mskcc-epi-bio.github.io/tidycmprsk/"><img src="man/figures/logo.png" align="right" height="138" /></a>
 
 <!-- badges: start -->
 
@@ -47,9 +47,9 @@ crr_mod <- crr(Surv(ttdeath, death_cr) ~ age + trt, trial)
 #> 11 cases omitted due to missing values
 crr_mod
 #> 
-#> -- crr() -----------------------------------------------------------------------
-#> * Call Surv(ttdeath, death_cr) ~ age + trt
-#> * Failure type of interest "death from cancer"
+#> ── crr() ───────────────────────────────────────────────────────────────────────
+#> • Call Surv(ttdeath, death_cr) ~ age + trt
+#> • Failure type of interest "death from cancer"
 #> 
 #> Variable    Coef    SE      HR     95% CI       p-value    
 #> age         0.006   0.010   1.01   0.99, 1.03   0.56       
@@ -77,14 +77,14 @@ gtsummary::inline_text(tbl, variable = age)
 ``` r
 cuminc(Surv(ttdeath, death_cr) ~ 1, trial)
 #> 
-#> -- cuminc() --------------------------------------------------------------------
-#> * Failure type "death from cancer"
+#> ── cuminc() ────────────────────────────────────────────────────────────────────
+#> • Failure type "death from cancer"
 #> time   n.risk   estimate   std.error   95% CI          
 #> 5.00   199      0.000      0.000       NA, NA          
 #> 10.0   189      0.030      0.012       0.012, 0.061    
 #> 15.0   158      0.120      0.023       0.079, 0.169    
 #> 20.0   116      0.215      0.029       0.161, 0.274
-#> * Failure type "death other causes"
+#> • Failure type "death other causes"
 #> time   n.risk   estimate   std.error   95% CI          
 #> 5.00   199      0.005      0.005       0.000, 0.026    
 #> 10.0   189      0.025      0.011       0.009, 0.054    
@@ -92,11 +92,17 @@ cuminc(Surv(ttdeath, death_cr) ~ 1, trial)
 #> 20.0   116      0.205      0.029       0.152, 0.264
 ```
 
-Plot risks using `autoplot()`.
+Plot risks using using the {ggsurvfit} package.
 
 ``` r
+library(ggsurvfit)
+#> Loading required package: ggplot2
+
 cuminc(Surv(ttdeath, death_cr) ~ trt, trial) %>%
-  autoplot(conf.int = TRUE)
+  ggcuminc() +
+  add_confidence_interval() +
+  add_risktable()
+#> Plotting outcome "death from cancer".
 ```
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
@@ -121,7 +127,9 @@ Conduct](https://mskcc-epi-bio.github.io/tidycmprsk/CODE_OF_CONDUCT.html).
 By contributing to this project, you agree to abide by its terms. Thank
 you to all contributors!  
 [@ddsjoberg](https://github.com/ddsjoberg),
-[@karissawhiting](https://github.com/karissawhiting), and
+[@erikvona](https://github.com/erikvona),
+[@karissawhiting](https://github.com/karissawhiting),
+[@m-freitag](https://github.com/m-freitag), and
 [@tengfei-emory](https://github.com/tengfei-emory)
 
 #### Limitations

@@ -1,3 +1,15 @@
+# tidycmprsk 0.2.0
+
+* The `autoplot.tidycuminc()` method has been deprecated in favor of `ggsurvfit::ggcuminc()`. (#81)
+
+* Fix in `cuminc()` when one or more strata levels has no observations with one of the outcomes observed.
+
+* Updated `cuminc()` and `crr()` to drop un-observed factor levels before processing the data. Previously, un-observed levels led to a singularity error. (#76)
+
+* Bug fix in `tidy.tidycuminc()` when times specified are after the maximum follow-up time. (#77)
+
+* Re-wrote an `ifelse()` statement to avoid a warning when tied times are present in `cuminc()`. (#74)
+
 # tidycmprsk 0.1.2
 
 * The `"strata"` column in tidied `cuminc()` results is now a factor. (#62)
