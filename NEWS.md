@@ -1,3 +1,13 @@
+# tidycmprsk 1.0.0
+
+* Corrected a previous regression bug and `cuminc()` can again handle models with no observed censoring. (#89)
+
+* Performance improvements to `cuminc()`. (@pteridin; #73)
+
+* The `autoplot()` method for `cuminc()` objects is now defunct in favor of `ggsurvfit::ggcuminc()`. (#100)
+
+* Updates ahead of the {purrr} v1.0 release.
+
 # tidycmprsk 0.2.0
 
 * The `autoplot.tidycuminc()` method has been deprecated in favor of `ggsurvfit::ggcuminc()`. (#81)

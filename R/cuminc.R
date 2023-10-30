@@ -36,8 +36,6 @@ NULL
 #' @rdname cuminc
 #' @export
 cuminc.formula <- function(formula, data, strata, rho = 0, conf.level = 0.95, ...) {
-  if (!missing(data)) data <- droplevels(data)
-
   # extracting failure level ---------------------------------------------------
   failcode_numeric <-
     as_numeric_failcode(formula = formula, data = data, keep_all = TRUE)
@@ -136,8 +134,8 @@ new_cuminc <- function(formula, data, failcode, blueprint, cmprsk, conf.level) {
       conf.level = conf.level,
       class = "tidycuminc"
     )
-  new_cuminc <-
-    new_cuminc %>%
-    purrr::list_modify(tidy = first_cuminc_tidy(new_cuminc, conf.level = conf.level))
+
+  new_cuminc$tidy <- first_cuminc_tidy(new_cuminc, conf.level = conf.level)
+
   new_cuminc
 }

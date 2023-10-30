@@ -5,11 +5,12 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/MSKCC-Epi-Bio/tidycmprsk/workflows/R-CMD-check/badge.svg)](https://github.com/MSKCC-Epi-Bio/tidycmprsk/actions)
+[![R-CMD-check](https://github.com/MSKCC-Epi-Bio/tidycmprsk/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/MSKCC-Epi-Bio/tidycmprsk/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/MSKCC-Epi-Bio/tidycmprsk/branch/main/graph/badge.svg)](https://app.codecov.io/gh/MSKCC-Epi-Bio/tidycmprsk?branch=main)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/tidycmprsk)](https://cran.r-project.org/package=tidycmprsk)
+[![](https://cranlogs.r-pkg.org/badges/tidycmprsk)](https://cran.r-project.org/package=tidycmprsk)
 <!-- badges: end -->
 
 The `tidycmprsk` package provides an intuitive interface for working
@@ -62,10 +63,11 @@ The `tidycmprsk` plays well with other packages, such as `gtsummary`.
 tbl <- 
   crr_mod %>%
   gtsummary::tbl_regression(exponentiate = TRUE) %>%
+  gtsummary::add_global_p(anova_fun = gtsummary::tidy_wald_test) %>%
   add_n(location = "level")
 ```
 
-<img src="man/figures/README-gtsummary_print-1.png" width="50%" />
+<img src="man/figures/README-gtsummary-crr.png" width="50%" />
 
 ``` r
 gtsummary::inline_text(tbl, variable = age)
@@ -117,7 +119,7 @@ tbl <-
   add_n()
 ```
 
-<img src="man/figures/README-gtsummary_print2-1.png" width="70%" />
+<img src="man/figures/README-gtsummary-cuminc.png" width="70%" />
 
 ## Contributing
 
@@ -127,13 +129,21 @@ Conduct](https://mskcc-epi-bio.github.io/tidycmprsk/CODE_OF_CONDUCT.html).
 By contributing to this project, you agree to abide by its terms. Thank
 you to all contributors!  
 [@ddsjoberg](https://github.com/ddsjoberg),
+[@dublinQAQ](https://github.com/dublinQAQ),
 [@erikvona](https://github.com/erikvona),
+[@fdehrich](https://github.com/fdehrich),
+[@hadley](https://github.com/hadley),
 [@karissawhiting](https://github.com/karissawhiting),
-[@m-freitag](https://github.com/m-freitag), and
+[@Lamenace23](https://github.com/Lamenace23),
+[@m-freitag](https://github.com/m-freitag),
+[@mjtjmjtj](https://github.com/mjtjmjtj),
+[@pteridin](https://github.com/pteridin),
+[@ramashka328](https://github.com/ramashka328),
+[@SoumyaRo](https://github.com/SoumyaRo), and
 [@tengfei-emory](https://github.com/tengfei-emory)
 
 #### Limitations
 
 The `tidycmprsk` package implements most features (and more) available
 in `cmprsk`. However, the time interaction features available in
-`cmprsk::crr()` have not yet been made available in `tidycmprsk`.
+`cmprsk::crr()` is not available in `tidycmprsk`.
