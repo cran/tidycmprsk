@@ -1,8 +1,8 @@
-aa522d614cb7f74965f2b187b1ea63d0 *DESCRIPTION
+9407dacb7ff7f36cc2d000c834816efa *DESCRIPTION
 ef842e8d028f17471cea7da697aafa27 *NAMESPACE
-e44fd2e185b6682ffa229a95e11ed9a5 *NEWS.md
+477ab2b038a8ea3d8444870ec8c9f59f *NEWS.md
 ed94738ca7382dbec148187cf2bb5d6e *R/base_methods.R
-5cfba108a7fab9599e5596ae6e0724c2 *R/broom_methods.R
+ab968cd177d381377a17404b23bbc7c2 *R/broom_methods.R
 869985c66ec85d5e5fc5dd98f0ef2f20 *R/crr.R
 0d8b2182681b3120b0c2256e19389ff6 *R/cuminc.R
 0304cc2ff59b41f26ffff3fe223c2880 *R/data.R
@@ -14,8 +14,8 @@ b4e925c4b344be61e940d3fc090a6d64 *R/print.R
 d9c9bbd1435e8ca45038b465468af6df *R/reexport.R
 228cb58e9cb7c1cece563fa39eb35792 *R/tbl_cuminc.R
 7b5f9dd4a51513bd2569103a3ac3dd82 *R/tidycmprsk-package.R
-4d629ab44f6416071b57e28724e1b13c *README.md
-1bf18d9c216b8d95033f0bd2fe2906b2 *build/partial.rdb
+f82dfc8c1c9a3bbf5b08bacd363dd27b *README.md
+76e123f5dcc8dee07678412adc0a2a84 *build/partial.rdb
 3788de3e183eb7563177e78e8b7f2536 *data/trial.rda
 bca15e354aac1779cde27b4ee58e9725 *inst/WORDLIST
 838be4566148d4c845ad26f8d09ff43f *man/add_cuminc.Rd
